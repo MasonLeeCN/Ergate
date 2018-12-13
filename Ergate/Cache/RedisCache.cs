@@ -13,9 +13,9 @@ namespace Ergate.Cache
     /// <summary>
     /// 缓存链接对象
     /// </summary>
-    public sealed class CacheConnection
+    public sealed class RedisCacheConnection
     {
-        private static CacheConnection instance = null;
+        private static RedisCacheConnection instance = null;
         private static ConnectionMultiplexer Connection = null;
         private static readonly SemaphoreSlim _connectionLock = new SemaphoreSlim(1, 1);
 
@@ -42,7 +42,7 @@ namespace Ergate.Cache
         /// 缓存链接单例,
         /// </summary>
         /// <returns></returns>
-        public static CacheConnection CreateInstance()
+        public static RedisCacheConnection CreateInstance()
         {
             if (instance == null)
             {
@@ -53,7 +53,7 @@ namespace Ergate.Cache
                     {
                         //设置比较大的线程池,据说能避免Timeout 陷阱
                         ThreadPool.SetMaxThreads(100, 100);
-                        instance = new CacheConnection();
+                        instance = new RedisCacheConnection();
                         Connection = ConnectionMultiplexer.Connect(ConnectionString);
                         Connection.PreserveAsyncOrder = false;
                         instance.Database = Connection.GetDatabase(-1, null);
@@ -101,7 +101,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public bool Exists(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             return db.KeyExists(key);
         }
 
@@ -112,7 +112,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public async Task<bool> ExistsAsync(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             return await db.KeyExistsAsync(key);
         }
 
@@ -124,7 +124,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public bool Set<T>(CacheNode<T> node)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var json = JsonConvert.SerializeObject(node.Data);
 
             if (node.CacheTime != default(TimeSpan))
@@ -145,7 +145,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public async Task<bool> SetAsync<T>(CacheNode<T> node)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var json = JsonConvert.SerializeObject(node.Data);
 
             if (node.CacheTime != default(TimeSpan))
@@ -166,7 +166,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public List<bool> Set<T>(List<CacheNode<T>> nodes)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
 
             var batch = db.CreateBatch();
 
@@ -209,7 +209,7 @@ namespace Ergate.Cache
         {
             await Task.Run(() =>
             {
-                var db = CacheConnection.CreateInstance().Database;
+                var db = RedisCacheConnection.CreateInstance().Database;
                 var batch = db.CreateBatch();
                 for (var m = 0; m < nodes.Count; m++)
                 {
@@ -238,7 +238,7 @@ namespace Ergate.Cache
         {
             await Task.Run(() =>
             {
-                var db = CacheConnection.CreateInstance().Database;
+                var db = RedisCacheConnection.CreateInstance().Database;
                 var batch = db.CreateBatch();
                 var maps = ToMap(node.Data);
 
@@ -272,7 +272,7 @@ namespace Ergate.Cache
 
             await Task.Run(() =>
             {
-                var db = CacheConnection.CreateInstance().Database;
+                var db = RedisCacheConnection.CreateInstance().Database;
                 var batch = db.CreateBatch();
                 var currentTime = DateTime.Now;
                 for (var m = 0; m < nodes.Count; m++)
@@ -300,7 +300,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public string Get(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var result = db.StringGet(key);
             return result;
         }
@@ -312,7 +312,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public async Task<string> GetAsync(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var result = await db.StringGetAsync(key);
             return result;
         }
@@ -326,7 +326,7 @@ namespace Ergate.Cache
         {
             var items = new Dictionary<string, string>();
 
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var result = await db.HashGetAllAsync(key);
             var kvps = result.ToDictionary();
 
@@ -371,7 +371,7 @@ namespace Ergate.Cache
         public async Task<string> GetHashAsync(string key, string field)
         {
             var items = new Dictionary<string, string>();
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var expTimeStr = await db.HashGetAsync(key, "_ExpiryTime_");
             var value = await db.HashGetAsync(key, field);
 
@@ -401,7 +401,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public async Task<List<string>> GetHashAsync(List<string> keys, string field)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var batch = db.CreateBatch();
 
             var tasks = new List<Task<HashEntry[]>>();
@@ -477,7 +477,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public List<string> Get(List<string> keys)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var batch = db.CreateBatch();
 
             List<Task<RedisValue>> tasks = new List<Task<RedisValue>>();
@@ -507,7 +507,7 @@ namespace Ergate.Cache
         {
             var list = await Task.Run(() =>
             {
-                var db = CacheConnection.CreateInstance().Database;
+                var db = RedisCacheConnection.CreateInstance().Database;
                 var batch = db.CreateBatch();
 
                 List<Task<RedisValue>> tasks = new List<Task<RedisValue>>();
@@ -539,7 +539,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public bool Remove(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             return db.KeyDelete(key);
         }
 
@@ -550,7 +550,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public async Task<bool> RemoveAsync(string key)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             return await db.KeyDeleteAsync(key);
         }
 
@@ -561,7 +561,7 @@ namespace Ergate.Cache
         /// <returns></returns>
         public List<bool> Remove(List<string> keys)
         {
-            var db = CacheConnection.CreateInstance().Database;
+            var db = RedisCacheConnection.CreateInstance().Database;
             var batch = db.CreateBatch();
 
             var tasks = new List<Task<bool>>();
@@ -592,7 +592,7 @@ namespace Ergate.Cache
         {
             var list = await Task.Run(() =>
             {
-                var db = CacheConnection.CreateInstance().Database;
+                var db = RedisCacheConnection.CreateInstance().Database;
                 var batch = db.CreateBatch();
 
                 var tasks = new List<Task<bool>>();
