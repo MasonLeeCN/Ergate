@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>PetNet.Events</RootNamespace>
+    <AssemblyName>Ergate.Events</AssemblyName>
+    <Version>0.1.0</Version>
+    <NeutralLanguage>zh-CN</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="AuthService\" />
+    <Folder Include="BaseService\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ergate\Ergate.csproj" />
+  </ItemGroup>
+
+</Project>
