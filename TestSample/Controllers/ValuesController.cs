@@ -30,7 +30,6 @@ namespace TestSample.Controllers
             return ISO8601time;
         }
 
-        [JwtAuthorize]
         [HttpGet]
         [Route("my")]
         public string[] GetResult()
